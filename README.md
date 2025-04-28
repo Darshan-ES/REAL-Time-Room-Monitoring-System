@@ -8,3 +8,7 @@ sudo ./toggle_gpio18
 DHT22
 
 g++ main.cpp dht22.cpp -o dht22_reader -lpigpio -lrt -lpthread
+
+PIR
+
+g++ main.cpp PIR.cpp -o pir_reader -lpigpio -lrt -lpthread
