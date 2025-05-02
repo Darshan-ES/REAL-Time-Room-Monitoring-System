@@ -1,21 +1,17 @@
-#include "dht22.hpp"
+#include "dht11.hpp"
 #include <pigpio.h>
 #include <iostream>
-#include <unistd.h>
+#include <cstdint>
 
-bool readDHT22(int gpioPin, float &temperature, float &humidity) {
+bool readDHT11(int gpioPin, int &temperature, int &humidity) {
     uint8_t data[5] = {0};
-    uint8_t byteIndex = 0, bitIndex = 7;
-
-    // Start signal to DHT22
     gpioSetMode(gpioPin, PI_OUTPUT);
     gpioWrite(gpioPin, PI_LOW);
-    gpioDelay(20000); // 20ms LOW
+    gpioDelay(20000); // =18ms to trigger start
     gpioWrite(gpioPin, PI_HIGH);
     gpioDelay(30);
     gpioSetMode(gpioPin, PI_INPUT);
 
-    // Wait for DHT22 response
     int count = 0;
     while (gpioRead(gpioPin) == PI_HIGH && count++ < 1000) gpioDelay(1);
     count = 0;
@@ -23,39 +19,24 @@ bool readDHT22(int gpioPin, float &temperature, float &humidity) {
     count = 0;
     while (gpioRead(gpioPin) == PI_HIGH && count++ < 1000) gpioDelay(1);
 
-    // Read 40 bits
     for (int i = 0; i < 40; ++i) {
-        // Wait for the start of the bit
         while (gpioRead(gpioPin) == PI_LOW);
-
         uint32_t startTick = gpioTick();
-
-        // Wait for the end of the bit
         while (gpioRead(gpioPin) == PI_HIGH);
-
         uint32_t duration = gpioTick() - startTick;
 
-        // If the HIGH pulse is longer than 50us, it's a '1' bit
+        data[i / 8] <<= 1;
         if (duration > 50)
-            data[byteIndex] |= (1 << bitIndex);
-
-        if (bitIndex == 0) {
-            bitIndex = 7;
-            byteIndex++;
-        } else {
-            bitIndex--;
-        }
+            data[i / 8] |= 1;
     }
 
-    // Verify checksum
     uint8_t checksum = data[0] + data[1] + data[2] + data[3];
-    if (data[4] != checksum) {
+    if (checksum != data[4]) {
+        std::cerr << "Checksum failed!" << std::endl;
         return false;
     }
 
-    humidity = ((data[0] << 8) + data[1]) * 0.1;
-    temperature = (((data[2] & 0x7F) << 8) + data[3]) * 0.1;
-    if (data[2] & 0x80) temperature = -temperature;
-
+    humidity = data[0];     // integral part only
+    temperature = data[2];  // integral part only
     return true;
 }

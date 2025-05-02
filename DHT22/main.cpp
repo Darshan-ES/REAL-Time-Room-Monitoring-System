@@ -1,27 +1,30 @@
+#include "dht11.hpp"
 #include <iostream>
 #include <pigpio.h>
 #include <unistd.h>
-#include "dht22.hpp"
 
-#define DHT_PIN 4  // BCM GPIO pin 4 (physical pin 7)
+#define DHT11_PIN 4  // GPIO4 (physical pin 7)
 
 int main() {
+     std::cerr << "Process Start.\n";
     if (gpioInitialise() < 0) {
-        std::cerr << "pigpio initialization failed!" << std::endl;
+        std::cerr << "Failed to initialize pigpio.\n";
         return 1;
     }
 
-    float temperature = 0.0f;
-    float humidity = 0.0f;
+    int temperature = 0, humidity = 0;
+     std::cerr << "Process 2\n";
 
     while (true) {
-        if (readDHT22(DHT_PIN, temperature, humidity)) {
-            std::cout << "Temperature: " << temperature << " Â°C, "
-                      << "Humidity: " << humidity << " %" << std::endl;
+        std::cerr << "Process 3\n";
+        if (readDHT11(DHT11_PIN, temperature, humidity)) {
+            std::cout << "Temperature: " << temperature << " °C, "
+                      << "Humidity: " << humidity << " %\n";
         } else {
-            std::cout << "Failed to read DHT22 sensor." << std::endl;
+            std::cerr << "Failed to read DHT11 sensor.\n";
         }
-        sleep(2);
+        std::cerr << "Process 4\n";
+        sleep(2);  // DHT11 requires at least 1s delay between reads
     }
 
     gpioTerminate();

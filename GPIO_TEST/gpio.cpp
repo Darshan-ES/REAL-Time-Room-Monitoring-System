@@ -13,6 +13,7 @@ int main() {
     gpioSetMode(GPIO_PIN, PI_OUTPUT);
 
     while (true) {
+        std::cerr << "Functional pigpio!" << std::endl;
         gpioWrite(GPIO_PIN, 1);  // Set pin HIGH
         gpioDelay(500000);       // Delay 500 milliseconds (500,000 microseconds)
 
