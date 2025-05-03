@@ -1,11 +1,12 @@
 #include "PIR.hpp"
-#include <pigpio.h>
+#include "../common/GpioMmap.hpp"  
 #include <iostream>
 
-void setupPIR(int pin) {
-    gpioSetMode(pin, PI_INPUT);
+int setupPIR(int gpio) {
+    setGpioInput(gpio);  // Set the GPIO pin as input
+    return 0;            // Success
 }
 
-bool readPIR(int pin) {
-    return gpioRead(pin);
+int readPIR(int gpio) {
+    return readGpio(gpio);  // Return 1 if motion detected, else 0
 }
