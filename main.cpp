@@ -31,6 +31,12 @@ void setupThread(pthread_t &thread, void *(*func)(void*), int priority) {
 }
 
 int main() {
+     if (!mmapGpioInit()) {
+        std::cerr << "GPIO mmap init failed\n";
+        return 1;
+    }
+    
+    
     pthread_t samplerThread, monitorThread, controlThread, udpThread;
 
     setupThread(samplerThread, SensorSamplerThread, 80);     // 500ms
@@ -42,6 +48,9 @@ int main() {
     pthread_join(monitorThread, nullptr);
     pthread_join(controlThread, nullptr);
     pthread_join(udpThread, nullptr);
+
+    mmapGpioClose();  
+
 
     return 0;
 }
