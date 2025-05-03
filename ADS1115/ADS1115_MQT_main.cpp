@@ -8,7 +8,7 @@ int main() {
         return 1;
     }
 
-    float cleanAirVoltage = 0.85f; // <<< Replace with your calibrated clean-air voltage
+    float cleanAirVoltage = 0.46f;  // Updated calibrated clean-air voltage
 
     while (true) {
         int16_t raw = readADS1115Raw(0);  // Assuming MQ-135 connected to AIN0
@@ -16,8 +16,7 @@ int main() {
 
         float ppm = calculatePPM(voltage, cleanAirVoltage);
 
-        std::cout << "Voltage: " << voltage << " V | "
-                  << "Air Quality: ~" << ppm << " ppm" << std::endl;
+        std::cout << "Air Quality: ~" << ppm << " ppm" << std::endl;
 
         sleep(2);
     }
@@ -25,3 +24,5 @@ int main() {
     closeADS1115();
     return 0;
 }
+
+

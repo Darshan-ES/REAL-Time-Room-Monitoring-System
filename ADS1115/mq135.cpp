@@ -11,13 +11,13 @@ float calculatePPM(float voltage, float cleanAirVoltage) {
 
     float ratio = voltage / cleanAirVoltage;
 
-    // If sensor voltage is higher than clean air, air is likely cleaner than baseline
-    if (ratio > 1.0f) {
-        std::cout << "Air is cleaner than baseline. Estimating baseline PPM.\n";
-        return 400.0f;  // Assume clean air = ~400 ppm CO2
-    }
+    // Calculate ppm regardless of ratio to allow real-time dynamic response
+    float ppm = pow(10.0f, (1.0f * log10(ratio) + log10(400.0f)));
 
-    // Estimate PPM using empirical log-log fit (based on datasheet)
-    float ppm = pow(10.0f, (-1.0f * log10(ratio) + 1.5f));
+    // Optional: clamp ppm to prevent unrealistic output
+    if (ppm < 1.0f) ppm = 1.0f;
+    if (ppm > 10000.0f) ppm = 10000.0f;
+
     return ppm;
 }
+
