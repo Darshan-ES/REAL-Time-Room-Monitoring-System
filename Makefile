@@ -3,6 +3,7 @@ CXXFLAGS = -std=c++20 -Wall -pthread
 INCLUDES = -Isensors -Ithreads -Icommon
 
 SOURCES = main.cpp \
+          common/GpioMmap.cpp \
           sensors/PIR.cpp sensors/ads1115.cpp sensors/mq135.cpp sensors/bh1750.cpp \
           threads/SensorSampler.cpp threads/EnvironmentMonitor.cpp threads/ControlService.cpp threads/UDPSender.cpp
 
