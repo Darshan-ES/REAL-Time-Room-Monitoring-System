@@ -1,13 +1,12 @@
 #include "ControlService.hpp"
 #include "../common/SensorData.hpp"
 
-#include <pigpio.h>
 #include <iostream>
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
 
-#define ALERT_GPIO 27
+#define ALERT_GPIO 23
 #define TIMER_SIGNAL (SIGRTMIN + 2)
 
 extern SensorData sensorData;
@@ -20,9 +19,8 @@ void* ControlServiceThread(void* arg) {
     pthread_sigmask(SIG_BLOCK, &mask, nullptr);
 
     // Initialize GPIO
-    gpioSetMode(ALERT_GPIO, PI_OUTPUT);
-    gpioWrite(ALERT_GPIO, PI_LOW);
-
+    setGpioOutput(ALERT_GPIO);
+    writeGpio(ALERT_GPIO, false);  // Start LOW
     // Create POSIX timer
     timer_t timerid;
     struct sigevent sev{};
