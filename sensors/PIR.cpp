@@ -10,5 +10,3 @@ int setupPIR(int gpio) {
 bool readPIR(int gpio) {
     return readGpio(gpio);  // Return 1 if motion detected, else 0
 }
-
-

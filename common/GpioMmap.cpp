@@ -40,7 +40,7 @@ void setGpioOutput(int gpio) {
 void setGpioInput(int gpio) {
     int reg = gpio / 10;
     int shift = (gpio % 10) * 3;
-    gpio_base[reg] &= ~(0b111 << shift);  // set to input
+gpio_base[reg] = gpio_base[reg] & ~(0b111 << shift);
 }
 
 void writeGpio(int gpio, bool value) {
