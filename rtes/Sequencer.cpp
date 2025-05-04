@@ -57,13 +57,13 @@ void generateLoad(double targetMilliseconds) {
 
 // Service functions
 void service1() {
-    // Generate load for approximately 30.04ms
-    generateLoad(30.04);
+    // Generate load for approximately 20.04ms
+    generateLoad(20.00);
 }
 
 void service2() {
-    // Generate load for approximately 61.00ms
-    generateLoad(61.00);
+    // Generate load for approximately 50.00ms
+    generateLoad(50.00);
 }
 
 int main(int argc, char* argv[]) {
@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
     sequencer.addService(service2, 0, maxPriority - 2, 50);
 
     std::printf("Starting services with Rate Monotonic scheduling\n");
-    std::printf("Service 1: period=20ms, priority=%d, target WCET=30ms\n", maxPriority - 1);
-    std::printf("Service 2: period=50ms, priority=%d, target WCET=61ms\n", maxPriority - 2);
+    std::printf("Service 1: period=20ms, priority=%d, target WCET=20ms\n", maxPriority - 1);
+    std::printf("Service 2: period=50ms, priority=%d, target WCET=50ms\n", maxPriority - 2);
     std::printf("Runtime: %d seconds (or press Ctrl+C to terminate)\n", runtime_seconds);
     std::printf("----------------------------------------\n\n");
 
