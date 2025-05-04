@@ -12,7 +12,9 @@
 
 #include <signal.h>
 #include <time.h>
+
 #include <unistd.h>
+
 #include <fcntl.h>
 #include <syslog.h>
 
@@ -122,9 +124,13 @@ struct timespec start{}, end{};
 clock_gettime(CLOCK_MONOTONIC, &start);
 
         bool motion = readPIR(PIR_GPIO);
+        
         int16_t raw_adc = readADS1115Raw(0);
+        
         float voltage = convertToVoltage(raw_adc, 3.3);
+        
         float ppm = calculatePPM(voltage, CLEAN_AIR_VOLTAGE);
+        
         float lux = read_bh1750(i2c_fd);
 
         sensorData.motion.store(motion);

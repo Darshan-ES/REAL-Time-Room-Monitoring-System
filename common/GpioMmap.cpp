@@ -17,9 +17,12 @@ bool mmapGpioInit() {
     }
 
     gpio_base = (volatile uint32_t*)mmap(nullptr, BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, GPIO_BASE);
+    
     close(mem_fd);
 
-    if (gpio_base == MAP_FAILED) {
+    if (gpio_base == MAP_FAILED) 
+    {
+        
         perror("mmap failed");
         gpio_base = nullptr;
         return false;
@@ -34,7 +37,7 @@ void mmapGpioClose() {
 void setGpioOutput(int gpio) {
     int reg = gpio / 10;
     int shift = (gpio % 10) * 3;
-    gpio_base[reg] = (gpio_base[reg] & ~(0b111 << shift)) | (0b001 << shift);  // set to output
+    gpio_base[reg] = (gpio_base[reg] & ~(0b111 << shift)) | (0b001 << shift);  
 }
 
 void setGpioInput(int gpio) {

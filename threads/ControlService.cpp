@@ -16,7 +16,7 @@ extern ThreadStats ctrlStats;
 int blink_counter = 0;
 bool led_state = false;
 bool in_blink_phase = true;
-int total_blinks = 5;  // total ON-OFF pairs
+int total_blinks = 5;  
 
 extern SensorData sensorData;
 
@@ -85,16 +85,22 @@ while (runningFlag->load()) {
         }
     } else {
         // Normal control logic
-        bool motion = sensorData.motion.load();
+        //bool motion = sensorData.motion.load();
         float ppm = sensorData.gas_ppm.load();
-        float baseline = sensorData.baseline_ppm.load();
-        float threshold = baseline * 1.15f;
+        float lux = sensorData.lux.load();
+
+        float ppm_baseline = sensorData.baseline_ppm.load();
+        float lux_baseline = sensorData.baseline_lux.load();
+
+        float ppm_threshold = ppm_baseline * 1.01f;
+        float lux_threshold = lux_baseline * 1.15f;
+
 
         auto now = std::chrono::system_clock::now();
         std::time_t now_c = std::chrono::system_clock::to_time_t(now);
         std::cout << "[" << std::put_time(std::localtime(&now_c), "%T") << "] ";
 
-        if (motion || ppm > threshold) {
+        if (lux >  lux_threshold|| ppm > ppm_threshold) {
             writeGpio(ALERT_GPIO, true);
             std::cout << "[ControlService] Alert ON\n";
         } else {

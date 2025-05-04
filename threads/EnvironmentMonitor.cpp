@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
+
 #include <iomanip>
 #include <chrono>
 #include <syslog.h>
@@ -16,7 +17,8 @@ extern ThreadStats envStats;
 extern SensorData sensorData;
 
 
-void* EnvironmentMonitorThread(void* arg) {
+void* EnvironmentMonitorThread(void* arg)
+{
     std::atomic<bool>* runningFlag = static_cast<std::atomic<bool>*>(arg);
 
     sigset_t mask;
@@ -45,20 +47,28 @@ void* EnvironmentMonitorThread(void* arg) {
     struct timespec start{}, end{};
     int gasDriftCount = 0, luxDriftCount = 0;
 
-    while (runningFlag->load()) {
+    while (runningFlag->load())
+     {
         siginfo_t info;
-        if (sigwaitinfo(&mask, &info) == -1) {
+        
+        if (sigwaitinfo(&mask, &info) == -1) 
+        {
             perror("[ENV] sigwaitinfo");
+
             continue;
+            
         }
         clock_gettime(CLOCK_MONOTONIC, &start);
 
         bool motion = sensorData.motion.load();
         float ppm = sensorData.gas_ppm.load();
+        
         float lux = sensorData.lux.load();
         float gas_baseline = sensorData.baseline_ppm.load();
         float lux_baseline = sensorData.baseline_lux.load();
+        
         float gas_threshold = gas_baseline * 1.15f;
+        
         float lux_threshold = lux_baseline * 1.15f;
 
         auto now = std::chrono::system_clock::now();
@@ -119,6 +129,7 @@ void* EnvironmentMonitorThread(void* arg) {
     }
 
     if (logFile) fclose(logFile);
+    
     pthread_exit(nullptr);
     
 }
