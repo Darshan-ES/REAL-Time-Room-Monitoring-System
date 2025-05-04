@@ -16,6 +16,13 @@
 extern ThreadStats envStats;
 extern SensorData sensorData;
 
+void sendEmailAlert(const std::string& subject, const std::string& body) {
+    std::string command = "echo \"" + body + "\" | mail -s \"" + subject + "\" elg993@esimpleai.com";
+    int ret = system(command.c_str());
+    if (ret != 0) {
+        syslog(LOG_ERR, "[ENV] Failed to send email alert");
+    }
+}
 
 void* EnvironmentMonitorThread(void* arg)
 {
@@ -82,12 +89,23 @@ void* EnvironmentMonitorThread(void* arg)
 
         if (motion && ppm > gas_threshold) {
             log_msg = "[ALERT] Motion + Gas Detected!";
+            sendEmailAlert("URGENT: Motion + Gas Detected", "High gas level with motion at " + std::string(timestampStr));
+
         } else if (ppm > gas_threshold && lux > lux_threshold) {
+            
             log_msg = "[ALERT] High Gas and Light bangg!";
+            sendEmailAlert("URGENT: Gas + Lux Alert", "High gas and light detected at " + std::string(timestampStr));
+
         } else if (motion) {
-            log_msg = "[INFO] Motion detected";
-        } else if (ppm > gas_threshold) {
+    log_msg = "[INFO] Motion detected";
+}
+else if (lux > lux_threshold) {
+    log_msg = "[ALERT] High Light Intensity!";
+    sendEmailAlert("URGENT: Lux Alert", "High light detected at " + std::string(timestampStr));
+}     } else if (ppm > gas_threshold) {
             log_msg = "[INFO] Gas Level High";
+            sendEmailAlert("URGENT: Gas + Lux Alert", "High gas detected " + std::string(timestampStr));
+
         } else {
             log_msg = "[OK] Environment Normal";
         }
@@ -111,6 +129,8 @@ void* EnvironmentMonitorThread(void* arg)
             syslog(LOG_INFO, "%s (Δ%.1f%%)", drift_msg.c_str(), 100.0f * fabs(ppm - gas_baseline) / gas_baseline);
             if (logFile) fprintf(logFile, "[%s] %s (Δ%.1f%%)\n", timestampStr, drift_msg.c_str(),
                                  100.0f * fabs(ppm - gas_baseline) / gas_baseline);
+            sendEmailAlert("Gas Baseline Drift", "Drift: " + std::to_string(drift_msg) + "%");
+
             gasDriftCount = 0;
         }
 
