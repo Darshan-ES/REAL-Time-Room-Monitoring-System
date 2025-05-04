@@ -115,12 +115,12 @@
          printf("\n=== Service Statistics (Period: %u ms, Priority: %u) ===\n", _period, _priority);
          printf("Execution Count: %lu\n", _stats.executionCount);
          
-       printf("Execution Time (ms):\n");
-    printf("  Min: %.6f\n", _stats.minExecutionTime);  // Show 6 decimal places
-    printf("  Max: %.6f\n", _stats.maxExecutionTime);
-    printf("  Avg: %.6f\n", avgExecutionTime);
-    printf("  Jitter: %.6f\n", executionTimeJitter);
-      
+         printf("Execution Time (ms):\n");
+         printf("  Min: %.6f\n", _stats.minExecutionTime);  // Show 6 decimal places
+         printf("  Max: %.6f\n", _stats.maxExecutionTime);
+         printf("  Avg: %.6f\n", avgExecutionTime);
+         printf("  Jitter: %.6f\n", executionTimeJitter);
+         
          printf("Start Time Jitter (ms):\n");
          printf("  Min: %.3f\n", _stats.minStartJitter);
          printf("  Max: %.3f\n", _stats.maxStartJitter);
@@ -174,72 +174,71 @@
          }
      }
  
-// In the _provideService() method in Sequencer.hpp:
-
-void _provideService()
-{
-    _initializeService();
-    
-    while (_running) {
-        // Wait for release
-        _semaphore.acquire();
-        
-        if (_running) {
-            auto releaseTime = std::chrono::steady_clock::now();
-            
-            // Record release statistics
-            {
-                std::lock_guard<std::mutex> lock(_statsMutex);
-                
-                if (!_stats.firstReleaseSet) {
-                    _stats.firstRelease = releaseTime;
-                    _stats.lastExpectedRelease = releaseTime;
-                    _stats.firstReleaseSet = true;
-                } else {
-                    // Calculate start time jitter
-                    auto expectedRelease = _stats.lastExpectedRelease + std::chrono::milliseconds(_period);
-                    auto jitter = std::chrono::duration_cast<std::chrono::microseconds>(
-                        releaseTime - expectedRelease).count() / 1000.0; // Convert to ms
-                    
-                    _stats.minStartJitter = std::min(_stats.minStartJitter, std::abs(jitter));
-                    _stats.maxStartJitter = std::max(_stats.maxStartJitter, std::abs(jitter));
-                    _stats.totalStartJitter += std::abs(jitter);
-                    
-                    _stats.lastExpectedRelease = expectedRelease;
-                }
-            }
-            
-            // Execute the service - use the same clock type
-            auto startTime = std::chrono::steady_clock::now();
-            _doService();
-            auto endTime = std::chrono::steady_clock::now();
-            
-            // Record execution time statistics
-            {
-                std::lock_guard<std::mutex> lock(_statsMutex);
-                
-                double executionTime = std::chrono::duration_cast<std::chrono::microseconds>(
-                    endTime - startTime).count() / 1000.0; // Convert to ms
-                
-                _stats.minExecutionTime = std::min(_stats.minExecutionTime, executionTime);
-                _stats.maxExecutionTime = std::max(_stats.maxExecutionTime, executionTime);
-                _stats.totalExecutionTime += executionTime;
-                
-                // Check for deadline miss (deadline = period)
-                double responseTime = std::chrono::duration_cast<std::chrono::microseconds>(
-                    endTime - releaseTime).count() / 1000.0; // Convert to ms
-                
-                if (responseTime > _period) {
-                    _stats.deadlineMisses++;
-                    double lateness = responseTime - _period;
-                    _stats.maxLateness = std::max(_stats.maxLateness, lateness);
-                }
-                
-                _stats.executionCount++;
-            }
-        }
-    }
-};
+     void _provideService()
+     {
+         _initializeService();
+         
+         while (_running) {
+             // Wait for release
+             _semaphore.acquire();
+             
+             if (_running) {
+                 auto releaseTime = std::chrono::steady_clock::now();
+                 
+                 // Record release statistics
+                 {
+                     std::lock_guard<std::mutex> lock(_statsMutex);
+                     
+                     if (!_stats.firstReleaseSet) {
+                         _stats.firstRelease = releaseTime;
+                         _stats.lastExpectedRelease = releaseTime;
+                         _stats.firstReleaseSet = true;
+                     } else {
+                         // Calculate start time jitter
+                         auto expectedRelease = _stats.lastExpectedRelease + std::chrono::milliseconds(_period);
+                         auto jitter = std::chrono::duration_cast<std::chrono::microseconds>(
+                             releaseTime - expectedRelease).count() / 1000.0; // Convert to ms
+                         
+                         _stats.minStartJitter = std::min(_stats.minStartJitter, std::abs(jitter));
+                         _stats.maxStartJitter = std::max(_stats.maxStartJitter, std::abs(jitter));
+                         _stats.totalStartJitter += std::abs(jitter);
+                         
+                         _stats.lastExpectedRelease = expectedRelease;
+                     }
+                 }
+                 
+                 // Execute the service - use the same clock type
+                 auto startTime = std::chrono::steady_clock::now();
+                 _doService();
+                 auto endTime = std::chrono::steady_clock::now();
+                 
+                 // Record execution time statistics
+                 {
+                     std::lock_guard<std::mutex> lock(_statsMutex);
+                     
+                     double executionTime = std::chrono::duration_cast<std::chrono::microseconds>(
+                         endTime - startTime).count() / 1000.0; // Convert to ms
+                     
+                     _stats.minExecutionTime = std::min(_stats.minExecutionTime, executionTime);
+                     _stats.maxExecutionTime = std::max(_stats.maxExecutionTime, executionTime);
+                     _stats.totalExecutionTime += executionTime;
+                     
+                     // Check for deadline miss (deadline = period)
+                     double responseTime = std::chrono::duration_cast<std::chrono::microseconds>(
+                         endTime - releaseTime).count() / 1000.0; // Convert to ms
+                     
+                     if (responseTime > _period) {
+                         _stats.deadlineMisses++;
+                         double lateness = responseTime - _period;
+                         _stats.maxLateness = std::max(_stats.maxLateness, lateness);
+                     }
+                     
+                     _stats.executionCount++;
+                 }
+             }
+         }
+     }
+ };
   
  // The sequencer class contains the services set and manages
  // starting/stopping the services. While the services are running,
@@ -312,21 +311,4 @@ void _provideService()
          }
          
          // Wait for all services to finish
-         // (The jthread destructor will join automatically)
-         
-         // Print statistics for all services
-         printf("\n=== FINAL SERVICE STATISTICS SUMMARY ===\n");
-         for (const auto& service : _services) {
-             service->printStatistics();
-         }
-     }
- 
- private:
-     std::vector<std::unique_ptr<Service>> _services;
-     
-     static void timerHandler(union sigval sv) {
-         auto* service = static_cast<Service*>(sv.sival_ptr);
-         service->release();
-     }
- };
- 
+         //
