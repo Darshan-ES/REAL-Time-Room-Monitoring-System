@@ -26,7 +26,7 @@
 std::atomic<bool> terminateProgram{false};
 
 // GPIO number for pin 23 on RPi
-const char* GPIO_NUM = "23";  // Adjust this based on your system's GPIO numbering
+const char* GPIO_NUM = "535";  // For gpiochip512 base + GPIO 23
 
 // File descriptors for GPIO
 static int gpio_value_fd = -1;
