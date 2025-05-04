@@ -115,12 +115,12 @@
          printf("\n=== Service Statistics (Period: %u ms, Priority: %u) ===\n", _period, _priority);
          printf("Execution Count: %lu\n", _stats.executionCount);
          
-         printf("Execution Time (ms):\n");
-         printf("  Min: %.3f\n", _stats.minExecutionTime);
-         printf("  Max: %.3f\n", _stats.maxExecutionTime);
-         printf("  Avg: %.3f\n", avgExecutionTime);
-         printf("  Jitter: %.3f\n", executionTimeJitter);
-         
+       printf("Execution Time (ms):\n");
+    printf("  Min: %.6f\n", _stats.minExecutionTime);  // Show 6 decimal places
+    printf("  Max: %.6f\n", _stats.maxExecutionTime);
+    printf("  Avg: %.6f\n", avgExecutionTime);
+    printf("  Jitter: %.6f\n", executionTimeJitter);
+      
          printf("Start Time Jitter (ms):\n");
          printf("  Min: %.3f\n", _stats.minStartJitter);
          printf("  Max: %.3f\n", _stats.maxStartJitter);
