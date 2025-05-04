@@ -208,20 +208,22 @@
                  }
                  
                  // Execute the service
-                 auto startTime = std::chrono::steady_clock::now();
-                 _doService();
-                 auto endTime = std::chrono::steady_clock::now();
-                 
-                 // Record execution time statistics
-                 {
-                     std::lock_guard<std::mutex> lock(_statsMutex);
-                     
-                     double executionTime = std::chrono::duration_cast<std::chrono::microseconds>(
-                         endTime - startTime).count() / 1000.0; // Convert to ms
-                     
-                     _stats.minExecutionTime = std::min(_stats.minExecutionTime, executionTime);
-                     _stats.maxExecutionTime = std::max(_stats.maxExecutionTime, executionTime);
-                     _stats.totalExecutionTime += executionTime;
+              auto startTime = std::chrono::high_resolution_clock::now();
+_doService();
+auto endTime = std::chrono::high_resolution_clock::now();
+
+// Record execution time statistics
+{
+    std::lock_guard<std::mutex> lock(_statsMutex);
+    
+    // Use nanoseconds for better precision, then convert to milliseconds
+    double executionTime = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        endTime - startTime).count() / 1000000.0; // Convert to ms with decimal precision
+    
+    _stats.minExecutionTime = std::min(_stats.minExecutionTime, executionTime);
+    _stats.maxExecutionTime = std::max(_stats.maxExecutionTime, executionTime);
+    _stats.totalExecutionTime += executionTime;
+    
                      
                      // Check for deadline miss (deadline = period)
                      double responseTime = std::chrono::duration_cast<std::chrono::microseconds>(
