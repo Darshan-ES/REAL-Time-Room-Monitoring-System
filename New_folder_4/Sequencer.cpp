@@ -120,46 +120,6 @@ void toggleGpioMmap() {
     }
 }
 
-// Fibonacci Load Generator (kept for reference)
-/*
-uint64_t fibonacciIterative(uint64_t n) {
-    if (n <= 1) return n;
-    
-    uint64_t a = 0, b = 1;
-    for (uint64_t i = 2; i <= n; ++i) {
-        uint64_t temp = a + b;
-        a = b;
-        b = temp;
-    }
-    return b;
-}
-
-void generateLoad(double targetMilliseconds) {
-    auto start = std::chrono::high_resolution_clock::now();
-    uint64_t iterations = 0;
-    
-    while (true) {
-        fibonacciIterative(100);
-        iterations++;
-        
-        auto now = std::chrono::high_resolution_clock::now();
-        auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(now - start).count();
-        
-        if (elapsed >= targetMilliseconds * 1000) {
-            break;
-        }
-    }
-}
-
-void service1() {
-    generateLoad(20.00);
-}
-
-void service2() {
-    generateLoad(50.00);
-}
-*/
-
 int main(int argc, char* argv[]) {
     int runtime_seconds = 30; // Default runtime
     
