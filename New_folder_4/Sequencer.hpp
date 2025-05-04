@@ -239,7 +239,7 @@ void _provideService()
             }
         }
     }
-}
+};
   
  // The sequencer class contains the services set and manages
  // starting/stopping the services. While the services are running,
