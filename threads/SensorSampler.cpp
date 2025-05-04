@@ -6,13 +6,16 @@
 #include "../sensors/PIR.hpp"
 #include "../sensors/ads1115.hpp"
 #include "../sensors/mq135.hpp"
+
 #include "../sensors/bh1750.hpp"
+
 
 #include <signal.h>
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <syslog.h>
+
 extern ThreadStats samplerStats;
 
 #define PIR_GPIO 17
@@ -60,9 +63,13 @@ void* SensorSamplerThread(void* arg)
         usleep(sample_interval_ms * 1000);
 
         bool motion = readPIR(PIR_GPIO);
+        
         int16_t raw_adc = readADS1115Raw(0);
+        
         float voltage = convertToVoltage(raw_adc, 3.3);
+        
         float ppm = calculatePPM(voltage, CLEAN_AIR_VOLTAGE);
+        
         float lux = read_bh1750(i2c_fd);
 
         motion_count += motion ? 1 : 0;
@@ -93,9 +100,9 @@ void* SensorSamplerThread(void* arg)
 
 struct itimerspec its{};
 its.it_value.tv_sec = 0;
-its.it_value.tv_nsec = 400 * 1000000; // 0.4 seconds
+its.it_value.tv_nsec = 10* 1000000; // 0.4 seconds
 its.it_interval.tv_sec = 0;
-its.it_interval.tv_nsec = 400 * 1000000;
+its.it_interval.tv_nsec = 160 * 1000000;
 
     if (timer_settime(timerid, 0, &its, nullptr) != 0) {
         syslog(LOG_ERR, "timer_settime failed");
@@ -127,7 +134,7 @@ clock_gettime(CLOCK_MONOTONIC, &start);
 
         syslog(LOG_INFO, "Sampled - Motion: %d, Gas: %.3f ppm, Lux: %.2f",
                motion, ppm, lux);
-               
+        syslog(LOG_INFO, " ");
                sensorData.baseline_ppm.store(baseline_ppm);
 sensorData.baseline_lux.store(baseline_lux);
                clock_gettime(CLOCK_MONOTONIC, &end);
@@ -137,6 +144,9 @@ samplerStats.update(exec_time);
     }
 
     close(i2c_fd);
+    
     closelog();
+    
     pthread_exit(nullptr);
+    
 }

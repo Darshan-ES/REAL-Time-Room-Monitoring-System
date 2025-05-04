@@ -1,6 +1,7 @@
 #include "EnvironmentMonitor.hpp"
 #include "../common/SensorData.hpp"
 #include "../common/ThreadStats.hpp"
+#include <cmath>
 
 #include <iostream>
 #include <signal.h>
@@ -14,6 +15,7 @@
 extern ThreadStats envStats;
 extern SensorData sensorData;
 
+
 void* EnvironmentMonitorThread(void* arg) {
     std::atomic<bool>* runningFlag = static_cast<std::atomic<bool>*>(arg);
 
@@ -23,7 +25,7 @@ void* EnvironmentMonitorThread(void* arg) {
     pthread_sigmask(SIG_BLOCK, &mask, nullptr);
 
     // Open log file
-    FILE* logFile = fopen("/home/pi/envlog.txt", "a");
+    FILE* logFile = fopen("../envlog.txt", "a");
     if (!logFile) syslog(LOG_ERR, "[ENV] Failed to open envlog.txt");
 
     // Setup timer
@@ -35,9 +37,9 @@ void* EnvironmentMonitorThread(void* arg) {
 
     struct itimerspec its{};
     its.it_value.tv_sec = 0;
-    its.it_value.tv_nsec = 800 * 1000000;
+    its.it_value.tv_nsec = 80 * 1000000;
     its.it_interval.tv_sec = 0;
-    its.it_interval.tv_nsec = 800 * 1000000;
+    its.it_interval.tv_nsec = 220* 1000000;
     timer_settime(timerid, 0, &its, nullptr);
 
     struct timespec start{}, end{};
@@ -118,4 +120,5 @@ void* EnvironmentMonitorThread(void* arg) {
 
     if (logFile) fclose(logFile);
     pthread_exit(nullptr);
+    
 }

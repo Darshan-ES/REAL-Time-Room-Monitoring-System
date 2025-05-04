@@ -47,9 +47,9 @@ void* UDPSenderThread(void* arg) {
 
     struct itimerspec its{};
     its.it_value.tv_sec = 0;
-    its.it_value.tv_nsec = 800 * 1000000; // 0.8 seconds
+    its.it_value.tv_nsec = 100 * 1000000; // 0.8 seconds
     its.it_interval.tv_sec = 0;
-    its.it_interval.tv_nsec = 800 * 1000000;
+    its.it_interval.tv_nsec = 240 * 1000000;
 
     timer_settime(timerid, 0, &its, nullptr);
     struct timespec start{}, end{};
