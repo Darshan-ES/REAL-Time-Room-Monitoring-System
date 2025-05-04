@@ -142,7 +142,11 @@ void toggleGpioSysfs() {
 }
 
 int main(int argc, char* argv[]) {
-    int runtime_seconds = 30; // Default runtime for better statistics
+    printf("=== Starting GPIO Toggle Program ===\n");
+    printf("Process ID: %d\n", getpid());
+    printf("Effective UID: %d\n", geteuid());
+    
+    int runtime_seconds = 30;
     
     if (argc > 1) {
         runtime_seconds = std::atoi(argv[1]);
@@ -152,72 +156,79 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Set up signal handlers
+    printf("Setting up signal handlers...\n");
     struct sigaction sa;
     sa.sa_handler = signalHandler;
     sigemptyset(&sa.sa_mask);
     sa.sa_flags = 0;
-    sigaction(SIGINT, &sa, nullptr);
-    sigaction(SIGTERM, &sa, nullptr);
+    if (sigaction(SIGINT, &sa, nullptr) != 0) {
+        perror("sigaction SIGINT failed");
+    }
+    if (sigaction(SIGTERM, &sa, nullptr) != 0) {
+        perror("sigaction SIGTERM failed");
+    }
 
-    // Initialize syslog
+    printf("Initializing syslog...\n");
     openlog("rt_gpio_sysfs", LOG_PID | LOG_CONS, LOG_USER);
     syslog(LOG_INFO, "Starting GPIO toggle demonstration using sysfs method");
 
-    // Get maximum priority for SCHED_FIFO
+    printf("Getting maximum priority for SCHED_FIFO...\n");
     int maxPriority = sched_get_priority_max(SCHED_FIFO);
     if (maxPriority == -1) {
+        perror("sched_get_priority_max failed");
         syslog(LOG_ERR, "Failed to get maximum priority for SCHED_FIFO");
         return 1;
     }
+    printf("Max priority: %d\n", maxPriority);
 
-    // Initialize GPIO
+    printf("Setting up GPIO...\n");
     if (setupGpio() != 0) {
+        printf("ERROR: GPIO setup failed!\n");
         syslog(LOG_ERR, "GPIO setup failed");
         closelog();
         return 1;
     }
+    printf("GPIO setup successful!\n");
 
-    // Create sequencer
+    printf("Creating sequencer...\n");
     Sequencer sequencer{};
-
-    // Add GPIO toggle service with Rate Monotonic priority assignment
-    // GPIO service: Period = 100ms, Priority = maxPriority - 1 (highest priority)
+    
+    printf("Adding GPIO toggle service...\n");
     sequencer.addService(toggleGpioSysfs, 0, maxPriority - 1, 100);
 
-    std::printf("Starting GPIO Toggle Demo with Method 2 (sysfs)\n");
-    std::printf("GPIO Service: period=100ms, priority=%d\n", maxPriority - 1);
-    std::printf("Runtime: %d seconds (or press Ctrl+C to terminate)\n", runtime_seconds);
-    std::printf("----------------------------------------\n\n");
+    printf("Starting services...\n");
+    printf("GPIO Service: period=100ms, priority=%d\n", maxPriority - 1);
+    printf("Runtime: %d seconds (or press Ctrl+C to terminate)\n", runtime_seconds);
+    printf("----------------------------------------\n\n");
 
-    // Start services
     sequencer.startServices();
+    printf("Services started!\n");
 
-    // Wait for termination signal or runtime expiration
     auto start_time = std::chrono::steady_clock::now();
+    int loop_count = 0;
     while (!terminateProgram) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         
-        // Check if runtime has expired
+        if (++loop_count % 10 == 0) {  // Print every second
+            printf("Main loop running... (%d)\n", loop_count/10);
+        }
+        
         auto current_time = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(current_time - start_time).count();
         
         if (elapsed >= runtime_seconds) {
-            std::printf("\nRuntime of %d seconds completed.\n", runtime_seconds);
+            printf("\nRuntime of %d seconds completed.\n", runtime_seconds);
             break;
         }
     }
 
-    std::printf("\nTerminating services...\n");
-    std::printf("----------------------------------------\n");
+    printf("\nTerminating services...\n");
+    printf("----------------------------------------\n");
     
-    // Stop services  
     sequencer.stopServices();
-
-    // Cleanup GPIO (also called in signal handler, but this handles normal termination)
     cleanupGpio();
 
-    std::printf("\nGPIO Toggle demonstration completed.\n");
+    printf("\nGPIO Toggle demonstration completed.\n");
     syslog(LOG_INFO, "GPIO Toggle demonstration completed");
     closelog();
     
