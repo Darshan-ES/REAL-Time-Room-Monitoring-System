@@ -44,49 +44,67 @@ void signalHandler(int signum) {
 
 // Setup GPIO for sysfs method
 int setupGpio() {
+    printf("Attempting to export GPIO %s...\n", GPIO_NUM);
+    
     // Export GPIO
     int fd = open("/sys/class/gpio/export", O_WRONLY);
     if (fd == -1) {
-        syslog(LOG_ERR, "Failed to open export for writing");
+        perror("Failed to open /sys/class/gpio/export");
+        syslog(LOG_ERR, "Failed to open export for writing: %s", strerror(errno));
         return -1;
     }
 
     // Write GPIO number to export file
-    if (write(fd, GPIO_NUM, strlen(GPIO_NUM)) != (ssize_t)strlen(GPIO_NUM)) {
-        // Check if GPIO is already exported
+    ssize_t bytes_written = write(fd, GPIO_NUM, strlen(GPIO_NUM));
+    if (bytes_written != (ssize_t)strlen(GPIO_NUM)) {
         if (errno != EBUSY) {
-            syslog(LOG_ERR, "Failed to export GPIO %s", GPIO_NUM);
+            perror("Failed to write to export");
+            syslog(LOG_ERR, "Failed to export GPIO %s: %s", GPIO_NUM, strerror(errno));
             close(fd);
             return -1;
+        } else {
+            printf("GPIO %s already exported\n", GPIO_NUM);
         }
+    } else {
+        printf("GPIO %s exported successfully\n", GPIO_NUM);
     }
     close(fd);
 
     // Wait for udev to set up the GPIO files
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    printf("Waiting for udev...\n");
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
     // Set direction to output
     std::string dirPath = "/sys/class/gpio/gpio" + std::string(GPIO_NUM) + "/direction";
+    printf("Setting direction via %s...\n", dirPath.c_str());
+    
     fd = open(dirPath.c_str(), O_WRONLY);
     if (fd == -1) {
-        syslog(LOG_ERR, "Failed to open direction file");
+        perror("Failed to open direction file");
+        syslog(LOG_ERR, "Failed to open direction file: %s", strerror(errno));
         return -1;
     }
 
     if (write(fd, "out", 3) != 3) {
-        syslog(LOG_ERR, "Failed to set direction");
+        perror("Failed to set direction");
+        syslog(LOG_ERR, "Failed to set direction: %s", strerror(errno));
         close(fd);
         return -1;
     }
     close(fd);
+    printf("Direction set to output\n");
 
     // Open value file for repeated use
     std::string valPath = "/sys/class/gpio/gpio" + std::string(GPIO_NUM) + "/value";
+    printf("Opening value file %s...\n", valPath.c_str());
+    
     gpio_value_fd = open(valPath.c_str(), O_WRONLY);
     if (gpio_value_fd == -1) {
-        syslog(LOG_ERR, "Failed to open value file");
+        perror("Failed to open value file");
+        syslog(LOG_ERR, "Failed to open value file: %s", strerror(errno));
         return -1;
     }
+    printf("Value file opened successfully\n");
 
     syslog(LOG_INFO, "GPIO %s successfully configured for output", GPIO_NUM);
     return 0;
