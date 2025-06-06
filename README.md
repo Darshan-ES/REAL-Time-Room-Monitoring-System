@@ -1,14 +1,3 @@
-# RTES_FINAL_PROJECT
+# Real Time Room Monitoring System
 
-g++ toggle_gpio18.cpp -o toggle_gpio18 -lpigpio -lrt -lpthread
 
-sudo pigpiod      # (only if not already running)
-sudo ./toggle_gpio18
-
-DHT22
-
-g++ main.cpp dht22.cpp -o dht22_reader -lpigpio -lrt -lpthread
-
-PIR
-
-g++ main.cpp PIR.cpp -o pir_reader -lpigpio -lrt -lpthread
